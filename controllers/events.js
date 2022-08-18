@@ -52,7 +52,7 @@ const actualizarEvento = async (req,res = response) => {
         const uid = req.uid;
 
         if(!evento){
-            res.status(404).json({
+            return res.status(404).json({
                 ok: false,
                 msg: 'No existe ningún evento con ese ID'
             })
@@ -93,14 +93,52 @@ const actualizarEvento = async (req,res = response) => {
     // )
 }
 
-const eliminarEvento = (req,res = response) => {
-    res.json(
-        {
-            
-            ok:true,
-            msg: 'eliminarEvento'
+const eliminarEvento = async(req,res = response) => {
+
+    const eventoID = req.params.id;
+    const uid = req.uid;
+
+    try {
+        
+        const evento = await Evento.findById(eventoID);
+        
+
+        if(!evento){
+            return res.status(404).json({
+                ok:false,
+                msg: 'No existe ningún evento con ese ID'
+            });
         }
-    )
+
+        if(evento.user.toString() !== uid){
+            return res.status(401).json({
+                ok:false,
+                msg:'No tiene suficientes permisos para eliminar el evento'
+            });
+        }
+
+        await Evento.findByIdAndDelete(eventoID);
+
+        res.json({
+            ok:true,
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok:false,
+            msg: 'Hable con el administrador'
+        })
+        
+    }
+
+    // res.json(
+    //     {
+            
+    //         ok:true,
+    //         msg: 'eliminarEvento'
+    //     }
+    // )
 }
 
 module.exports = {
